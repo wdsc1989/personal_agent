@@ -96,23 +96,17 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "agent": "openAi",
+        "promptType": "define",
+        "text": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription || 'Olá, sou novo aqui' }}",
         "options": {
           "systemMessage": "=Você é um assistente útil que orienta usuários sobre o cadastro no sistema de contas pessoais.\n\nQuando um usuário novo acessa o sistema pela primeira vez, você deve:\n1. Dar boas-vindas calorosas\n2. Explicar que ele será cadastrado automaticamente\n3. Informar que após o cadastro poderá gerenciar suas contas a pagar\n4. Dar exemplos de comandos que ele pode usar\n\n**Exemplos de comandos:**\n- \"Adicionar conta: Fornecedor XYZ, vencimento 15/01/2025, R$ 1.500\"\n- \"Mostrar minhas contas\"\n- \"Contas de janeiro de 2025\"\n\nSeja amigável e claro!"
-        },
-        "messages": {
-          "values": [
-            {
-              "role": "user",
-              "content": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription || 'Olá, sou novo aqui' }}"
-            }
-          ]
         }
       },
       "id": "agente-orientacao-usuario",
       "name": "Agente: Orientar Novo Usuário",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.2,
       "position": [
         -2832,
         -176
@@ -754,23 +748,17 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "agent": "openAi",
+        "promptType": "define",
+        "text": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription }}",
         "options": {
           "systemMessage": "=Você é um assistente útil para gerenciar contas pessoais a pagar.\n\nQuando o usuário não informar claramente o que deseja fazer, pergunte educadamente e forneça exemplos:\n\n**Exemplos de comandos:**\n- \"Adicionar conta: Fornecedor XYZ, vencimento 15/01/2025, R$ 1.500\"\n- \"Mostrar minhas contas\"\n- \"Contas de janeiro de 2025\"\n- \"Atualizar conta ID 5: valor R$ 2.000\"\n- \"Excluir conta ID 5\"\n\nSempre seja claro e forneça exemplos quando necessário."
-        },
-        "messages": {
-          "values": [
-            {
-              "role": "user",
-              "content": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription }}"
-            }
-          ]
         }
       },
       "id": "0d1e772a-dfae-47d6-a935-7c3d1c19053b",
       "name": "Assistente IA",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.2,
       "position": [
         -2608,
         224
