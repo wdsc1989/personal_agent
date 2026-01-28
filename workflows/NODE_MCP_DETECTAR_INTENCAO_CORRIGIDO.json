@@ -1,0 +1,35 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:8001/mcp/detect",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.text || $json.message?.text || '' }}\",\n  \"context\": {}\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "0569ed3e-aad0-4e13-8d1b-5e0452ae48a9",
+      "name": "MCP: Detectar Intenção",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2160,
+        288
+      ]
+    }
+  ],
+  "connections": {},
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "efd2f9cda3faa877e09dbfe1ba204748ba3dc6f66d0a6e58e4f6cf0a14a608e5"
+  }
+}
