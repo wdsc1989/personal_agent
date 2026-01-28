@@ -72,7 +72,7 @@
           "conditions": [
             {
               "id": "check-voice",
-              "leftValue": "={{ $json.message.voice }}",
+              "leftValue": "={{ $json.voice }}",
               "rightValue": "",
               "operator": {
                 "type": "object",
@@ -95,7 +95,7 @@
     {
       "parameters": {
         "resource": "file",
-        "fileId": "={{ $('Preparar Dados').first().json.message.voice.file_id }}",
+        "fileId": "={{ $json.voice && $json.voice.file_id ? $json.voice.file_id : $('Preparar Dados').first().json.message.voice.file_id }}",
         "additionalFields": {}
       },
       "id": "telegram-get-voice",
