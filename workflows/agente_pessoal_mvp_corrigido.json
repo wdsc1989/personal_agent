@@ -164,13 +164,26 @@
     },
     {
       "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst fromUser = input.from_user;\nlet telegramId;\n\ntry {\n  if (typeof fromUser === 'string') {\n    const parsed = JSON.parse(fromUser);\n    telegramId = parsed.id;\n  } else if (fromUser && fromUser.id) {\n    telegramId = fromUser.id;\n  } else {\n    telegramId = fromUser;\n  }\n} catch(e) {\n  telegramId = 0;\n}\n\nreturn {\n  telegram_id: telegramId || 0,\n  text: input.text || '',\n  chat_id: input.chat_id,\n  from_user: input.from_user\n};"
+      },
+      "id": "extrair-telegram-id",
+      "name": "Extrair Telegram ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3360,
+        304
+      ]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "=SELECT id FROM usuarios_telegram WHERE telegram_id = $1;",
         "options": {
           "queryParameters": {
             "parameters": [
               {
-                "value": "={{ typeof $json.from_user === 'string' ? JSON.parse($json.from_user).id : ($json.from_user?.id || $json.from_user) }}"
+                "value": "={{ $json.telegram_id }}"
               }
             ]
           }
@@ -982,6 +995,17 @@
       ]
     },
     "Mesclar Texto": {
+      "main": [
+        [
+          {
+            "node": "Extrair Telegram ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Telegram ID": {
       "main": [
         [
           {
