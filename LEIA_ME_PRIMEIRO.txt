@@ -1,0 +1,67 @@
+================================================================================
+                    AGENTE PESSOAL - DEPLOY AUTOMATICO
+================================================================================
+
+TUDO FOI PREPARADO! Agora voce so precisa executar 2 comandos:
+
+================================================================================
+1. ENVIAR PARA O GITHUB (no seu computador)
+================================================================================
+
+Execute:
+    git push -u origin master
+
+OU se a branch for main:
+    git push -u origin main
+
+
+================================================================================
+2. DEPLOY NO SERVIDOR (conecte-se ao servidor)
+================================================================================
+
+ssh root@srv1140258.hstgr.cloud
+
+Depois execute:
+    cd /opt
+    git clone git@github.com:wdsc1989/personal_agent.git
+    cd personal_agent
+    bash scripts/deploy_completo.sh
+
+O script fara TUDO automaticamente:
+    - Criar ambiente virtual
+    - Instalar dependencias
+    - Configurar .env (solicitara senha do banco)
+    - Criar banco de dados
+    - Criar tabelas
+    - Configurar servico systemd
+    - Iniciar servidor MCP
+    - Verificar se esta funcionando
+
+
+================================================================================
+VERIFICACAO
+================================================================================
+
+Apos o script terminar, verifique:
+
+    sudo systemctl status mcp-server
+    curl http://localhost:8001/health
+
+
+================================================================================
+DOCUMENTACAO COMPLETA
+================================================================================
+
+- DEPLOY_AUTOMATICO.md    - Guia completo do deploy automatico
+- COMANDO_FINAL.txt        - Comandos prontos para copiar
+- DEPLOY_COMPLETO.md       - Guia detalhado passo a passo
+- workflows/N8N_WORKFLOW_GUIDE.md - Configurar n8n apos deploy
+
+
+================================================================================
+PRONTO!
+================================================================================
+
+Apenas execute os 2 comandos acima e tudo sera feito automaticamente!
+
+================================================================================
