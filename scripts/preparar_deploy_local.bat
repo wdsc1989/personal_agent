@@ -33,7 +33,7 @@ echo Proximo passo:
 echo   1. Conecte-se ao servidor: ssh root@srv1140258.hstgr.cloud
 echo   2. Execute: bash /opt/personal_agent/scripts/deploy_completo.sh
 echo      OU se ainda nao clonou:
-echo      cd /opt && git clone git@github.com:wdsc1989/personal_agent.git
+echo      cd /opt && git clone https://github.com/wdsc1989/personal_agent.git
 echo      cd personal_agent && bash scripts/deploy_completo.sh
 echo.
 pause
