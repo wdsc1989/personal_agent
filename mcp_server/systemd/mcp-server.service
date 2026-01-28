@@ -7,10 +7,7 @@ Type=simple
 User=root
 WorkingDirectory=/opt/personal_agent/mcp_server
 Environment="PATH=/opt/personal_agent/venv/bin:/usr/bin:/usr/local/bin"
-# Se usar venv, descomente a linha abaixo e comente a ExecStart atual
-# ExecStart=/opt/personal_agent/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
-# Se não usar venv, use:
-ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
+ExecStart=/opt/personal_agent/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
 Restart=always
 RestartSec=10
 StandardOutput=journal
