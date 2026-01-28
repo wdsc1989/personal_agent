@@ -1,0 +1,117 @@
+================================================================================
+COMANDOS PARA CONFIGURAR ACESSO EXTERNO AO POSTGRESQL
+================================================================================
+
+Execute estes comandos no servidor srv1140258.hstgr.cloud:
+
+================================================================================
+1. CONFIGURAR POSTGRESQL.CONF
+================================================================================
+
+sudo nano /etc/postgresql/16/main/postgresql.conf
+
+# Localize e descomente:
+listen_addresses = '*'
+
+# Salve: Ctrl+O, Enter, Ctrl+X
+
+================================================================================
+2. CONFIGURAR PG_HBA.CONF
+================================================================================
+
+sudo nano /etc/postgresql/16/main/pg_hba.conf
+
+# Adicione no final (antes dos comentários):
+host    personal_agent_db    personal_agent_user    0.0.0.0/0    scram-sha-256
+
+# OU para permitir apenas do seu IP (mais seguro):
+# host    personal_agent_db    personal_agent_user    SEU_IP/32    scram-sha-256
+
+# Salve: Ctrl+O, Enter, Ctrl+X
+
+================================================================================
+3. REINICIAR POSTGRESQL
+================================================================================
+
+sudo systemctl restart postgresql
+sudo systemctl status postgresql
+
+================================================================================
+4. VERIFICAR SE ESTÁ ESCUTANDO EXTERNAMENTE
+================================================================================
+
+sudo netstat -tlnp | grep 5432
+
+# Deve mostrar: 0.0.0.0:5432 (não apenas 127.0.0.1:5432)
+
+================================================================================
+5. VERIFICAR FIREWALL
+================================================================================
+
+sudo ufw status
+
+# Se a porta 5432 não estiver aberta:
+sudo ufw allow 5432/tcp
+sudo ufw reload
+
+================================================================================
+CONFIGURAÇÃO NO DBEAVER
+================================================================================
+
+1. Nova Conexão → PostgreSQL
+2. Configurar:
+   - Host: srv1140258.hstgr.cloud
+   - Porta: 5432
+   - Database: personal_agent_db
+   - Usuário: personal_agent_user
+   - Senha: Wc153624 (ou a senha configurada)
+3. Testar Conexão
+4. Finalizar
+
+================================================================================
+OPÇÃO MAIS SEGURA: TÚNEL SSH
+================================================================================
+
+No DBeaver, na configuração da conexão:
+
+1. Aba "SSH" → Marque "Use SSH Tunnel"
+2. Configure:
+   - Host: srv1140258.hstgr.cloud
+   - Porta: 22
+   - Usuário: root
+   - Autenticação: Chave privada ou senha
+3. Aba "Principal":
+   - Host: localhost (não o hostname externo!)
+   - Porta: 5432
+   - Database: personal_agent_db
+   - Usuário: personal_agent_user
+   - Senha: Wc153624
+
+================================================================================
+TESTAR CONEXÃO
+================================================================================
+
+# Via linha de comando (se tiver psql):
+psql -h srv1140258.hstgr.cloud -p 5432 -U personal_agent_user -d personal_agent_db
+
+# Via telnet (verificar se porta está acessível):
+telnet srv1140258.hstgr.cloud 5432
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+# Se der "Connection refused":
+sudo grep listen_addresses /etc/postgresql/16/main/postgresql.conf
+sudo systemctl restart postgresql
+sudo netstat -tlnp | grep 5432
+
+# Se der erro de autenticação:
+sudo -u postgres psql -c "\du personal_agent_user"
+sudo nano /etc/postgresql/16/main/pg_hba.conf
+
+# Se der timeout:
+sudo ufw status
+sudo ufw allow 5432/tcp
+
+================================================================================
