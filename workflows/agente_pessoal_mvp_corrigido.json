@@ -170,7 +170,7 @@
           "queryParameters": {
             "parameters": [
               {
-                "value": "={{ JSON.parse($json.from_user).id }}"
+                "value": "={{ typeof $json.from_user === 'string' ? JSON.parse($json.from_user).id : ($json.from_user?.id || $json.from_user) }}"
               }
             ]
           }
