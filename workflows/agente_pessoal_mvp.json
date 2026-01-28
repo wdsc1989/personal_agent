@@ -192,7 +192,7 @@
               }
             ]
           }
-        }
+        },
         "options": {}
       },
       "id": "postgres-create-user",
@@ -640,7 +640,7 @@
               }
             ]
           }
-        }
+        },
         "options": {}
       },
       "id": "postgres-insert",
