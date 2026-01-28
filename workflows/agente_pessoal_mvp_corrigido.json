@@ -139,15 +139,15 @@
           "values": [
             {
               "name": "text",
-              "stringValue": "={{ $('Speech to Text').item.json.text || $('Preparar Dados').item.json.text }}"
+              "stringValue": "={{ $input.first().json.text || '' }}"
             },
             {
               "name": "chat_id",
-              "stringValue": "={{ $('Preparar Dados').item.json.chat_id }}"
+              "stringValue": "={{ $('Preparar Dados').first().json.chat_id }}"
             },
             {
               "name": "from_user",
-              "stringValue": "={{ $('Preparar Dados').item.json.from_user }}"
+              "stringValue": "={{ $('Preparar Dados').first().json.from_user }}"
             }
           ]
         },
