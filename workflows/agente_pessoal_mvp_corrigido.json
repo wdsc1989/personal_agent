@@ -1,0 +1,1288 @@
+{
+  "name": "Agente Pessoal - Contas a Pagar",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger-001",
+      "name": "Listen for incoming events",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4320,
+        192
+      ],
+      "webhookId": "322dce18-f93e-4f86-b9b1-3305519b7834",
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "text",
+              "stringValue": "={{ $json?.message?.text || \"\" }}"
+            },
+            {
+              "name": "chat_id",
+              "stringValue": "={{ $json.message.chat.id }}"
+            },
+            {
+              "name": "from_user",
+              "stringValue": "={{ JSON.stringify($json.message.from) }}"
+            },
+            {
+              "name": "voice",
+              "value": "={{ $json.message.voice }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "preparar-dados",
+      "name": "Preparar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -4112,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "check-voice",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.voice }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "if-is-audio",
+      "name": "É Áudio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3952,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "id": "get-voice-file",
+      "name": "Get Voice File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -3776,
+        32
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "id": "speech-to-text",
+      "name": "Speech to Text",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        -3584,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "MFY2fJWuuXKZK6tH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "text",
+              "stringValue": "={{ $('Speech to Text').item.json.text || $('Preparar Dados').item.json.text }}"
+            },
+            {
+              "name": "chat_id",
+              "stringValue": "={{ $('Preparar Dados').item.json.chat_id }}"
+            },
+            {
+              "name": "from_user",
+              "stringValue": "={{ $('Preparar Dados').item.json.from_user }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "mesclar-texto",
+      "name": "Mesclar Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -3360,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT id FROM usuarios_telegram WHERE telegram_id = $1;",
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "value": "={{ JSON.parse($json.from_user).id }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "verificar-usuario-existe",
+      "name": "Verificar Se Usuário Existe",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -3168,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uWWeJvYz2xSIvVCU",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-user-exists",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "if-usuario-existe",
+      "name": "Usuário Existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3024,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text || 'Olá, sou novo aqui' }}",
+        "options": {
+          "systemMessage": "=Você é um assistente útil que orienta usuários sobre o cadastro no sistema de contas pessoais.\n\nQuando um usuário novo acessa o sistema pela primeira vez, você deve:\n1. Dar boas-vindas calorosas\n2. Explicar que ele será cadastrado automaticamente\n3. Informar que após o cadastro poderá gerenciar suas contas a pagar\n4. Dar exemplos de comandos que ele pode usar\n\n**Exemplos de comandos:**\n- \"Adicionar conta: Fornecedor XYZ, vencimento 15/01/2025, R$ 1.500\"\n- \"Mostrar minhas contas\"\n- \"Contas de janeiro de 2025\"\n\nSeja amigável e claro!"
+        }
+      },
+      "id": "agente-orientacao-usuario",
+      "name": "Agente: Orientar Novo Usuário",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2832,
+        112
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "MFY2fJWuuXKZK6tH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-orientacao",
+      "name": "Enviar Orientação",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -2608,
+        112
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO usuarios_telegram (telegram_id, nome_usuario, primeiro_nome, ultimo_nome, codigo_idioma, ultimo_acesso) VALUES ($1, $2, $3, $4, 'pt-BR', CURRENT_TIMESTAMP) ON CONFLICT (telegram_id) DO UPDATE SET ultimo_acesso = CURRENT_TIMESTAMP RETURNING id;",
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "value": "={{ JSON.parse($json.from_user).id }}"
+              },
+              {
+                "value": "={{ JSON.parse($json.from_user).username || null }}"
+              },
+              {
+                "value": "={{ JSON.parse($json.from_user).first_name }}"
+              },
+              {
+                "value": "={{ JSON.parse($json.from_user).last_name || null }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "criar-buscar-usuario",
+      "name": "Criar ou Buscar Usuário",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2400,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uWWeJvYz2xSIvVCU",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/detect",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.text }}\",\n  \"context\": {}\n}",
+        "options": {}
+      },
+      "id": "mcp-detect",
+      "name": "MCP: Detectar Intenção",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3024,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-insert",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "INSERT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "INSERT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-update",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "UPDATE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "UPDATE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-delete",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "DELETE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "DELETE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-list",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "LIST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "LIST"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-report",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "REPORT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "REPORT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "roteador-acao",
+      "name": "Roteador de Ação",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2832,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/extract",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Mesclar Texto').item.json.text }}\",\n  \"action\": \"{{ $('MCP: Detectar Intenção').item.json.action }}\",\n  \"context\": {}\n}",
+        "options": {}
+      },
+      "id": "mcp-extract",
+      "name": "MCP: Extrair Dados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2608,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/validate",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"data\": {{ JSON.stringify($json.data) }},\n  \"action\": \"{{ $('MCP: Detectar Intenção').item.json.action }}\"\n}",
+        "options": {}
+      },
+      "id": "mcp-validate",
+      "name": "MCP: Validar Dados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2400,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-valid",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "if-validate",
+      "name": "Verificar Validação",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2176,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "=❌ **Erro de Validação**\n\n{{ $json.errors.join('\\n') }}\n\nPor favor, corrija os dados e tente novamente.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-erro-validacao",
+      "name": "Enviar Erro de Validação",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -1952,
+        112
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/format-confirmation",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"action\": \"{{ $('MCP: Detectar Intenção').item.json.action }}\",\n  \"data\": {{ JSON.stringify($('MCP: Extrair Dados').item.json.data) }},\n  \"old_data\": null\n}",
+        "options": {}
+      },
+      "id": "mcp-format",
+      "name": "MCP: Formatar Confirmação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1952,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "={{ $json.message }}\n\n**Responda SIM para confirmar ou NÃO para cancelar.**",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-confirmacao",
+      "name": "Enviar Confirmação",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -1728,
+        304
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "wait",
+        "limit": 1,
+        "waitTime": 60
+      },
+      "id": "aguardar-confirmacao",
+      "name": "Aguardar Confirmação",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1520,
+        304
+      ],
+      "webhookId": "d970281f-7259-4ca0-abc2-18f616610d53"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "chat_id": "={{ $('Mesclar Texto').item.json.chat_id }}"
+        }
+      },
+      "id": "aguardar-resposta",
+      "name": "Aguardar Resposta",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1296,
+        304
+      ],
+      "webhookId": "telegram-wait-confirmation",
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resposta = $input.item.json.text.toLowerCase().trim();\nconst confirmacoes = ['sim', 's', 'confirmar', 'ok', 'yes', 'y'];\nconst cancelamentos = ['não', 'nao', 'n', 'cancelar', 'cancel', 'no'];\n\nif (confirmacoes.includes(resposta)) {\n  return { confirmed: true };\n} else if (cancelamentos.includes(resposta)) {\n  return { confirmed: false };\n} else {\n  return { confirmed: false, invalid: true };\n}"
+      },
+      "id": "verificar-confirmacao",
+      "name": "Verificar Confirmação",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "rule-confirmed",
+                    "leftValue": "={{ $json.confirmed }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Confirmado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "executar-cancelar",
+      "name": "Executar ou Cancelar",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -848,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "❌ Operação cancelada.",
+        "additionalFields": {}
+      },
+      "id": "enviar-cancelamento",
+      "name": "Enviar Cancelamento",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        208
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO contas_pagar (usuario_telegram_id, nome_credor, descricao, valor_total, data_vencimento, categoria, status) VALUES ((SELECT id FROM usuarios_telegram WHERE telegram_id = $1), $2, $3, $4, $5, $6, 'pendente') RETURNING id, nome_credor, valor_total, data_vencimento;",
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "value": "={{ JSON.parse($('Mesclar Texto').item.json.from_user).id }}"
+              },
+              {
+                "value": "={{ $('MCP: Extrair Dados').item.json.data.nome_credor }}"
+              },
+              {
+                "value": "={{ $('MCP: Extrair Dados').item.json.data.descricao || null }}"
+              },
+              {
+                "value": "={{ $('MCP: Extrair Dados').item.json.data.valor_total }}"
+              },
+              {
+                "value": "={{ $('MCP: Extrair Dados').item.json.data.data_vencimento }}"
+              },
+              {
+                "value": "={{ $('MCP: Extrair Dados').item.json.data.categoria || null }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "executar-insercao",
+      "name": "Executar Inserção",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -640,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uWWeJvYz2xSIvVCU",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "=✅ **Conta registrada com sucesso!**\n\n**ID:** {{ $json.id }}\n**Credor:** {{ $json.nome_credor }}\n**Valor:** R$ {{ $json.valor_total }}\n**Vencimento:** {{ $json.data_vencimento }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-sucesso",
+      "name": "Enviar Sucesso",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -416,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/extract",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Mesclar Texto').item.json.text }}\",\n  \"action\": \"LIST\",\n  \"context\": {}\n}",
+        "options": {}
+      },
+      "id": "mcp-extract-list",
+      "name": "MCP: Extrair Filtros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2608,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/mcp/list",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"usuario_telegram_id\": {{ JSON.parse($('Mesclar Texto').item.json.from_user).id }},\n  \"data_inicial\": \"{{ $json.data.data_inicial || null }}\",\n  \"data_final\": \"{{ $json.data.data_final || null }}\",\n  \"status\": \"{{ $json.data.status || null }}\",\n  \"categoria\": \"{{ $json.data.categoria || null }}\"\n}",
+        "options": {}
+      },
+      "id": "mcp-list",
+      "name": "MCP: Listar Contas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const contas = $input.item.json.contas || [];\nlet mensagem = `📋 **Suas Contas**\\n\\n`;\nmensagem += `Total: ${contas.length} conta(s)\\n`;\nmensagem += `Valor Total: R$ ${($input.item.json.total_valor || 0).toFixed(2)}\\n\\n`;\n\nif (contas.length === 0) {\n  mensagem += \"Nenhuma conta encontrada.\\n\";\n} else {\n  contas.forEach((conta, index) => {\n    mensagem += `${index + 1}. **${conta.nome_credor}**\\n`;\n    mensagem += `   Valor: R$ ${conta.valor_total.toFixed(2)}\\n`;\n    mensagem += `   Vencimento: ${conta.data_vencimento}\\n`;\n    mensagem += `   Status: ${conta.status}\\n\\n`;\n  });\n}\n\nreturn { message: mensagem };"
+      },
+      "id": "formatar-lista",
+      "name": "Formatar Lista",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2176,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-lista",
+      "name": "Enviar Lista",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -1952,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Mesclar Texto').item.json.text }}",
+        "options": {
+          "systemMessage": "=Você é um assistente útil para gerenciar contas pessoais a pagar.\n\nQuando o usuário não informar claramente o que deseja fazer, pergunte educadamente e forneça exemplos:\n\n**Exemplos de comandos:**\n- \"Adicionar conta: Fornecedor XYZ, vencimento 15/01/2025, R$ 1.500\"\n- \"Mostrar minhas contas\"\n- \"Contas de janeiro de 2025\"\n- \"Atualizar conta ID 5: valor R$ 2.000\"\n- \"Excluir conta ID 5\"\n\nSempre seja claro e forneça exemplos quando necessário."
+        }
+      },
+      "id": "assistente-ia",
+      "name": "Assistente IA",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2608,
+        496
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "MFY2fJWuuXKZK6tH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mesclar Texto').item.json.chat_id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "enviar-resposta-assistente",
+      "name": "Enviar Resposta Assistente",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -2400,
+        496
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.error;\nconst chatId = $('Mesclar Texto').item?.json?.chat_id || $('Listen for incoming events').first()?.json?.message?.chat?.id;\n\nreturn {\n  error: true,\n  message: `❌ Erro: ${error.message}`,\n  chat_id: chatId\n};"
+      },
+      "id": "tratar-erro",
+      "name": "Tratar Erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "enviar-erro",
+      "name": "Enviar Erro",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        208
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MgvXniT4uL6iZFI2",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Listen for incoming events": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados": {
+      "main": [
+        [
+          {
+            "node": "É Áudio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Áudio?": {
+      "main": [
+        [
+          {
+            "node": "Get Voice File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mesclar Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Voice File": {
+      "main": [
+        [
+          {
+            "node": "Speech to Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Speech to Text": {
+      "main": [
+        [
+          {
+            "node": "Mesclar Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mesclar Texto": {
+      "main": [
+        [
+          {
+            "node": "Verificar Se Usuário Existe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Se Usuário Existe": {
+      "main": [
+        [
+          {
+            "node": "Usuário Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Usuário Existe?": {
+      "main": [
+        [
+          {
+            "node": "MCP: Detectar Intenção",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente: Orientar Novo Usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente: Orientar Novo Usuário": {
+      "main": [
+        [
+          {
+            "node": "Enviar Orientação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Orientação": {
+      "main": [
+        [
+          {
+            "node": "Criar ou Buscar Usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar ou Buscar Usuário": {
+      "main": [
+        [
+          {
+            "node": "MCP: Detectar Intenção",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Detectar Intenção": {
+      "main": [
+        [
+          {
+            "node": "Roteador de Ação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteador de Ação": {
+      "main": [
+        [
+          {
+            "node": "MCP: Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MCP: Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MCP: Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MCP: Extrair Filtros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Assistente IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Extrair Dados": {
+      "main": [
+        [
+          {
+            "node": "MCP: Validar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Validar Dados": {
+      "main": [
+        [
+          {
+            "node": "Verificar Validação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Validação": {
+      "main": [
+        [
+          {
+            "node": "MCP: Formatar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Erro de Validação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Formatar Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Enviar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Aguardar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Aguardar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Verificar Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Executar ou Cancelar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar ou Cancelar": {
+      "main": [
+        [
+          {
+            "node": "Executar Inserção",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar Inserção": {
+      "main": [
+        [
+          {
+            "node": "Enviar Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Extrair Filtros": {
+      "main": [
+        [
+          {
+            "node": "MCP: Listar Contas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: Listar Contas": {
+      "main": [
+        [
+          {
+            "node": "Formatar Lista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Lista": {
+      "main": [
+        [
+          {
+            "node": "Enviar Lista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assistente IA": {
+      "main": [
+        [
+          {
+            "node": "Enviar Resposta Assistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "agente-pessoal-mvp-v2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "efd2f9cda3faa877e09dbfe1ba204748ba3dc6f66d0a6e58e4f6cf0a14a608e5"
+  },
+  "id": "be4hkEheJqSb8uOI",
+  "tags": []
+}
