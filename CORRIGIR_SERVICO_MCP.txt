@@ -1,0 +1,58 @@
+================================================================================
+CORRIGIR ARQUIVO DE SERVIÇO MCP NO SERVIDOR
+================================================================================
+
+O arquivo de serviço precisa usar o venv. Execute no servidor:
+
+================================================================================
+1. ATUALIZAR ARQUIVO DE SERVIÇO
+================================================================================
+
+cd /opt/personal_agent
+git pull origin master
+
+# OU editar manualmente:
+sudo nano /etc/systemd/system/mcp-server.service
+
+# Altere a linha ExecStart para:
+ExecStart=/opt/personal_agent/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
+
+# Salve: Ctrl+O, Enter, Ctrl+X
+
+================================================================================
+2. RECARREGAR E REINICIAR
+================================================================================
+
+sudo systemctl daemon-reload
+sudo systemctl restart mcp-server
+sudo systemctl status mcp-server
+
+================================================================================
+3. TESTAR
+================================================================================
+
+curl http://localhost:8001/health
+
+================================================================================
+CONTEÚDO CORRETO DO ARQUIVO
+================================================================================
+
+[Unit]
+Description=MCP Server - Agente Pessoal
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/personal_agent/mcp_server
+Environment="PATH=/opt/personal_agent/venv/bin:/usr/bin:/usr/local/bin"
+ExecStart=/opt/personal_agent/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+================================================================================
