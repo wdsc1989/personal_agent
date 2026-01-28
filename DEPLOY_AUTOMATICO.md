@@ -6,7 +6,7 @@ Este guia mostra como fazer o deploy **totalmente automático** no servidor.
 
 ## 📋 Pré-requisitos
 
-1. ✅ Repositório Git configurado: `git@github.com:wdsc1989/personal_agent.git`
+1. ✅ Repositório Git configurado: `https://github.com/wdsc1989/personal_agent.git`
 2. ✅ Acesso SSH ao servidor: `srv1140258.hstgr.cloud`
 3. ✅ Chave SSH configurada no servidor para acessar o GitHub
 
@@ -45,7 +45,7 @@ ssh root@srv1140258.hstgr.cloud
 
 ```bash
 cd /opt
-git clone git@github.com:wdsc1989/personal_agent.git
+git clone https://github.com/wdsc1989/personal_agent.git
 cd personal_agent
 bash scripts/deploy_completo.sh
 ```

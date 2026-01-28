@@ -23,7 +23,7 @@ git init
 echo.
 echo Configurando repositorio remoto...
 git remote remove origin 2>nul
-git remote add origin git@github.com:wdsc1989/personal_agent.git
+git remote add origin https://github.com/wdsc1989/personal_agent.git
 
 echo.
 echo Adicionando todos os arquivos...
