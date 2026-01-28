@@ -175,25 +175,20 @@
           "queryParameters": {
             "parameters": [
               {
-                "name": "telegram_id",
                 "value": "={{ JSON.parse($json.from_user).id }}"
               },
               {
-                "name": "nome_usuario",
                 "value": "={{ JSON.parse($json.from_user).username || null }}"
               },
               {
-                "name": "primeiro_nome",
                 "value": "={{ JSON.parse($json.from_user).first_name }}"
               },
               {
-                "name": "ultimo_nome",
                 "value": "={{ JSON.parse($json.from_user).last_name || null }}"
               }
             ]
           }
-        },
-        "options": {}
+        }
       },
       "id": "postgres-create-user",
       "name": "Criar ou Buscar Usuário",
@@ -615,33 +610,26 @@
           "queryParameters": {
             "parameters": [
               {
-                "name": "telegram_id",
                 "value": "={{ JSON.parse($('Preparar Dados').item.json.from_user).id }}"
               },
               {
-                "name": "nome_credor",
                 "value": "={{ $('MCP: Extrair Dados').item.json.data.nome_credor }}"
               },
               {
-                "name": "descricao",
                 "value": "={{ $('MCP: Extrair Dados').item.json.data.descricao || null }}"
               },
               {
-                "name": "valor_total",
                 "value": "={{ $('MCP: Extrair Dados').item.json.data.valor_total }}"
               },
               {
-                "name": "data_vencimento",
                 "value": "={{ $('MCP: Extrair Dados').item.json.data.data_vencimento }}"
               },
               {
-                "name": "categoria",
                 "value": "={{ $('MCP: Extrair Dados').item.json.data.categoria || null }}"
               }
             ]
           }
-        },
-        "options": {}
+        }
       },
       "id": "postgres-insert",
       "name": "Executar Inserção",
