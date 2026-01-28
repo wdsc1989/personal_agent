@@ -13,7 +13,7 @@ echo ""
 # Configurações
 DEPLOY_DIR="/opt/personal_agent"
 PYTHON_CMD="python3"
-REPO_URL="git@github.com:wdsc1989/personal_agent.git"
+REPO_URL="https://github.com/wdsc1989/personal_agent.git"
 
 # Cores para output
 RED='\033[0;31m'
