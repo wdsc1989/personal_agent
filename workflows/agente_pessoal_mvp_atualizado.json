@@ -96,7 +96,6 @@
     },
     {
       "parameters": {
-        "agent": "openAi",
         "promptType": "define",
         "text": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription || 'Olá, sou novo aqui' }}",
         "options": {
@@ -106,7 +105,7 @@
       "id": "agente-orientacao-usuario",
       "name": "Agente: Orientar Novo Usuário",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.2,
+      "typeVersion": 3,
       "position": [
         -2832,
         -176
@@ -748,7 +747,6 @@
     },
     {
       "parameters": {
-        "agent": "openAi",
         "promptType": "define",
         "text": "={{ $('Mesclar Texto').item.json.text || $('Mesclar Texto').item.json.transcription }}",
         "options": {
@@ -758,7 +756,7 @@
       "id": "0d1e772a-dfae-47d6-a935-7c3d1c19053b",
       "name": "Assistente IA",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.2,
+      "typeVersion": 3,
       "position": [
         -2608,
         224
