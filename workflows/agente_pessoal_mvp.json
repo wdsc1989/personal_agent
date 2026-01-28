@@ -845,127 +845,127 @@
     }
   ],
   "connections": {
-    "telegram-trigger-001": {
+    "Escutar Mensagens": {
       "main": [
         [
           {
-            "node": "set-prepare-data",
+            "node": "Preparar Dados",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "set-prepare-data": {
+    "Preparar Dados": {
       "main": [
         [
           {
-            "node": "if-is-audio",
+            "node": "É Áudio?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "if-is-audio": {
+    "É Áudio?": {
       "main": [
         [
           {
-            "node": "telegram-get-voice",
+            "node": "Obter Arquivo de Voz",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "postgres-create-user",
+            "node": "Criar ou Buscar Usuário",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "telegram-get-voice": {
+    "Obter Arquivo de Voz": {
       "main": [
         [
           {
-            "node": "openai-speech-to-text",
+            "node": "Voz para Texto",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "openai-speech-to-text": {
+    "Voz para Texto": {
       "main": [
         [
           {
-            "node": "set-merge-text",
+            "node": "Mesclar Texto",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "set-merge-text": {
+    "Mesclar Texto": {
       "main": [
         [
           {
-            "node": "postgres-create-user",
+            "node": "Criar ou Buscar Usuário",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "postgres-create-user": {
+    "Criar ou Buscar Usuário": {
       "main": [
         [
           {
-            "node": "http-mcp-detect",
+            "node": "MCP: Detectar Intenção",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-detect": {
+    "MCP: Detectar Intenção": {
       "main": [
         [
           {
-            "node": "switch-router",
+            "node": "Roteador de Ação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "switch-router": {
+    "Roteador de Ação": {
       "main": [
         [
           {
-            "node": "http-mcp-extract",
+            "node": "MCP: Extrair Dados",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "http-mcp-extract",
+            "node": "MCP: Extrair Dados",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "http-mcp-extract",
+            "node": "MCP: Extrair Dados",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "http-mcp-extract-list",
+            "node": "MCP: Extrair Filtros",
             "type": "main",
             "index": 0
           }
@@ -973,175 +973,175 @@
         [],
         [
           {
-            "node": "openai-assistant",
+            "node": "Assistente IA",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-extract": {
+    "MCP: Extrair Dados": {
       "main": [
         [
           {
-            "node": "http-mcp-validate",
+            "node": "MCP: Validar Dados",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-validate": {
+    "MCP: Validar Dados": {
       "main": [
         [
           {
-            "node": "if-validate",
+            "node": "Verificar Validação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "if-validate": {
+    "Verificar Validação": {
       "main": [
         [
           {
-            "node": "http-mcp-format",
+            "node": "MCP: Formatar Confirmação",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "telegram-send-error",
+            "node": "Enviar Erro de Validação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-format": {
+    "MCP: Formatar Confirmação": {
       "main": [
         [
           {
-            "node": "telegram-send-confirmation",
+            "node": "Enviar Confirmação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "telegram-send-confirmation": {
+    "Enviar Confirmação": {
       "main": [
         [
           {
-            "node": "wait-confirmation",
+            "node": "Aguardar Confirmação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "wait-confirmation": {
+    "Aguardar Confirmação": {
       "main": [
         [
           {
-            "node": "telegram-wait-response",
+            "node": "Aguardar Resposta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "telegram-wait-response": {
+    "Aguardar Resposta": {
       "main": [
         [
           {
-            "node": "code-verify-confirmation",
+            "node": "Verificar Confirmação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "code-verify-confirmation": {
+    "Verificar Confirmação": {
       "main": [
         [
           {
-            "node": "switch-execute-cancel",
+            "node": "Executar ou Cancelar",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "switch-execute-cancel": {
+    "Executar ou Cancelar": {
       "main": [
         [
           {
-            "node": "postgres-insert",
+            "node": "Executar Inserção",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "telegram-send-cancel",
+            "node": "Enviar Cancelamento",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "postgres-insert": {
+    "Executar Inserção": {
       "main": [
         [
           {
-            "node": "telegram-send-success",
+            "node": "Enviar Sucesso",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-extract-list": {
+    "MCP: Extrair Filtros": {
       "main": [
         [
           {
-            "node": "http-mcp-list",
+            "node": "MCP: Listar Contas",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-mcp-list": {
+    "MCP: Listar Contas": {
       "main": [
         [
           {
-            "node": "code-format-list",
+            "node": "Formatar Lista",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "code-format-list": {
+    "Formatar Lista": {
       "main": [
         [
           {
-            "node": "telegram-send-list",
+            "node": "Enviar Lista",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "openai-assistant": {
+    "Assistente IA": {
       "main": [
         [
           {
-            "node": "telegram-send-assistant",
+            "node": "Enviar Resposta Assistente",
             "type": "main",
             "index": 0
           }
