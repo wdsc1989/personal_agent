@@ -34,6 +34,42 @@ print_info() {
     echo -e "${YELLOW}[INFO]${NC} $1"
 }
 
+# Função para codificar senha para URL (URL encode)
+url_encode() {
+    local string="${1}"
+    local strlen=${#string}
+    local encoded=""
+    local pos c o
+
+    for (( pos=0 ; pos<strlen ; pos++ )); do
+        c=${string:$pos:1}
+        case "$c" in
+            [-_.~a-zA-Z0-9] ) o="${c}" ;;
+            * ) printf -v o '%%%02x' "'$c" ;;
+        esac
+        encoded+="${o}"
+    done
+    echo "${encoded}"
+}
+
+# Função para codificar senha para URL (necessário se senha contém caracteres especiais)
+urlencode() {
+    local string="${1}"
+    local strlen=${#string}
+    local encoded=""
+    local pos c o
+
+    for (( pos=0 ; pos<strlen ; pos++ )); do
+        c=${string:$pos:1}
+        case "$c" in
+            [-_.~a-zA-Z0-9] ) o="${c}" ;;
+            * ) printf -v o '%%%02x' "'$c"
+        esac
+        encoded+="${o}"
+    done
+    echo "${encoded}"
+}
+
 # Verificar se está rodando como root ou com sudo
 if [ "$EUID" -ne 0 ]; then 
     print_info "Alguns comandos precisam de sudo. Você será solicitado a inserir a senha."
@@ -134,8 +170,11 @@ if [ ! -f ".env" ]; then
     read -p "Digite a senha do banco de dados: " -s DB_PASSWORD
     echo ""
     
-    # Atualizar .env com a senha
-    sed -i "s|SENHA_SEGURA_AQUI|$DB_PASSWORD|g" .env
+    # Codificar senha para URL (necessário se contém caracteres especiais como @)
+    DB_PASSWORD_ENCODED=$(urlencode "$DB_PASSWORD")
+    
+    # Atualizar .env com a senha codificada
+    sed -i "s|SENHA_SEGURA_AQUI|$DB_PASSWORD_ENCODED|g" .env
     sed -i "s|localhost|localhost|g" .env  # Garantir que usa localhost
     
     print_success "Arquivo .env configurado"
@@ -145,9 +184,13 @@ else
     if [ "$resposta" = "s" ] || [ "$resposta" = "S" ]; then
         read -p "Digite a senha do banco de dados: " -s DB_PASSWORD
         echo ""
-        sed -i "s|SENHA_SEGURA_AQUI|$DB_PASSWORD|g" .env
-        # Atualizar senha existente (assumindo formato padrão)
-        sed -i "s|postgresql://personal_agent_user:[^@]*@|postgresql://personal_agent_user:$DB_PASSWORD@|g" .env
+        
+        # Codificar senha para URL
+        DB_PASSWORD_ENCODED=$(url_encode "$DB_PASSWORD")
+        
+        sed -i "s|SENHA_SEGURA_AQUI|$DB_PASSWORD_ENCODED|g" .env
+        # Atualizar senha existente na URL (usando senha codificada)
+        sed -i "s|postgresql://personal_agent_user:[^@]*@|postgresql://personal_agent_user:$DB_PASSWORD_ENCODED@|g" .env
         print_success "Senha atualizada no .env"
     fi
 fi
@@ -177,8 +220,14 @@ fi
 if [ "$SKIP_DB_CREATE" != "true" ]; then
     print_info "Criando banco de dados e usuário..."
     
-    # Ler senha do .env
-    DB_PASSWORD=$(grep DATABASE_URL_PERSONAL .env | sed 's/.*:\([^@]*\)@.*/\1/')
+    # Ler senha do .env (pode estar codificada, vamos usar a original)
+    # Primeiro tenta ler a senha que foi digitada (não codificada)
+    if [ -z "$DB_PASSWORD" ]; then
+        # Se não tiver a variável, tenta decodificar da URL
+        DB_PASSWORD_RAW=$(grep DATABASE_URL_PERSONAL .env | sed 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/')
+        # Decodificar URL (substituir %40 por @, etc)
+        DB_PASSWORD=$(echo "$DB_PASSWORD_RAW" | sed 's/%40/@/g' | sed 's/%21/!/g' | sed 's/%23/#/g' | sed 's/%24/$/g' | sed 's/%25/%/g' | sed 's/%26/\&/g' | sed 's/%2B/+/g' | sed 's/%2C/,/g' | sed 's/%2F/\//g' | sed 's/%3A/:/g' | sed 's/%3B/;/g' | sed 's/%3D/=/g' | sed 's/%3F/?/g')
+    fi
     
     # Criar banco e usuário
     sudo -u postgres psql << EOF
