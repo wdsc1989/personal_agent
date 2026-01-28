@@ -1,0 +1,75 @@
+================================================================================
+COMANDOS FINAIS PARA DEPLOY AUTOMATICO
+================================================================================
+
+Execute estes comandos na ordem:
+
+================================================================================
+1. INICIALIZAR GIT (se ainda nao foi feito)
+================================================================================
+
+cd c:\Users\DELL\Documents\Projetos\Contabil\personal_agent
+scripts\inicializar_git.bat
+
+Depois:
+git push -u origin main
+# OU se a branch for master:
+git push -u origin master
+
+
+================================================================================
+2. PREPARAR E ENVIAR PARA GIT
+================================================================================
+
+scripts\preparar_deploy_local.bat
+
+OU manualmente:
+git add .
+git commit -m "Deploy: Preparacao para servidor"
+git push origin main
+
+
+================================================================================
+3. CONECTAR AO SERVIDOR E EXECUTAR DEPLOY AUTOMATICO
+================================================================================
+
+ssh root@srv1140258.hstgr.cloud
+
+Depois no servidor:
+cd /opt
+git clone git@github.com:wdsc1989/personal_agent.git
+cd personal_agent
+bash scripts/deploy_completo.sh
+
+O script fara TUDO automaticamente:
+- Criar ambiente virtual
+- Instalar dependencias
+- Configurar .env (solicitara senha do banco)
+- Criar banco de dados
+- Criar tabelas
+- Configurar servico systemd
+- Iniciar servidor MCP
+- Verificar se esta funcionando
+
+
+================================================================================
+4. VERIFICAR DEPLOY
+================================================================================
+
+No servidor, apos o script terminar:
+
+sudo systemctl status mcp-server
+curl http://localhost:8001/health
+
+
+================================================================================
+PRONTO!
+================================================================================
+
+O sistema estara rodando em:
+- Servidor MCP: http://localhost:8001
+- Banco: personal_agent_db
+
+Proximo passo: Configurar n8n seguindo workflows/N8N_WORKFLOW_GUIDE.md
+
+================================================================================

@@ -1,0 +1,208 @@
+================================================================================
+COMANDOS PARA DEPLOY NO SERVIDOR HOSTINGER
+================================================================================
+
+Execute estes comandos na ordem no servidor srv1140258.hstgr.cloud
+
+================================================================================
+1. CONECTAR AO SERVIDOR
+================================================================================
+
+ssh root@srv1140258.hstgr.cloud
+# ou
+ssh seu_usuario@srv1140258.hstgr.cloud
+
+
+================================================================================
+2. CRIAR DIRETÓRIO E COPIAR ARQUIVOS
+================================================================================
+
+# Criar diretório
+sudo mkdir -p /opt/personal_agent
+sudo chown $USER:$USER /opt/personal_agent
+cd /opt/personal_agent
+
+# Copiar arquivos (escolha uma opção):
+
+# Opção A: Via Git
+git clone https://seu-repositorio.git /opt/personal_agent
+
+# Opção B: Via SCP (do seu computador Windows)
+# scp -r "c:\Users\DELL\Documents\Projetos\Contabil\personal_agent\*" root@srv1140258.hstgr.cloud:/opt/personal_agent/
+
+
+================================================================================
+3. CRIAR AMBIENTE VIRTUAL E INSTALAR DEPENDÊNCIAS
+================================================================================
+
+cd /opt/personal_agent
+
+# Criar venv
+python3 -m venv venv
+source venv/bin/activate
+
+# Atualizar pip
+pip install --upgrade pip
+
+# Instalar dependências
+pip install -r requirements.txt
+cd mcp_server
+pip install -r requirements.txt
+cd ..
+
+
+================================================================================
+4. CONFIGURAR ARQUIVO .env
+================================================================================
+
+cd /opt/personal_agent
+nano .env
+
+# Configure:
+DATABASE_URL_PERSONAL=postgresql://personal_agent_user:SUA_SENHA@localhost:5432/personal_agent_db
+MCP_PORT=8001
+MCP_HOST=0.0.0.0
+
+# IMPORTANTE: Use localhost, não o hostname externo!
+
+
+================================================================================
+5. CRIAR BANCO DE DADOS
+================================================================================
+
+cd /opt/personal_agent
+
+# Editar script SQL primeiro (alterar senha)
+nano scripts/create_personal_agent_db.sql
+
+# Executar script
+sudo -u postgres psql -f scripts/create_personal_agent_db.sql
+
+# OU executar manualmente:
+sudo -u postgres psql
+
+# No psql:
+CREATE DATABASE personal_agent_db;
+CREATE USER personal_agent_user WITH PASSWORD 'SUA_SENHA_REAL';
+GRANT ALL PRIVILEGES ON DATABASE personal_agent_db TO personal_agent_user;
+\c personal_agent_db
+GRANT ALL ON SCHEMA public TO personal_agent_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO personal_agent_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO personal_agent_user;
+\q
+
+
+================================================================================
+6. INICIALIZAR TABELAS
+================================================================================
+
+cd /opt/personal_agent
+source venv/bin/activate
+
+# Opção A: Usando script
+python3 scripts/init_tables.py
+
+# Opção B: Direto
+python3 -c "from config.database import init_db_personal; init_db_personal()"
+
+
+================================================================================
+7. CONFIGURAR SERVIÇO SYSTEMD
+================================================================================
+
+cd /opt/personal_agent
+
+# Editar arquivo de serviço (ajustar caminhos)
+nano mcp_server/systemd/mcp-server.service
+
+# Verificar/ajustar:
+# WorkingDirectory=/opt/personal_agent/mcp_server
+# ExecStart=/opt/personal_agent/venv/bin/python3 /opt/personal_agent/mcp_server/main.py
+
+# Copiar e configurar
+sudo cp mcp_server/systemd/mcp-server.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable mcp-server
+
+
+================================================================================
+8. INICIAR SERVIÇO
+================================================================================
+
+sudo systemctl start mcp-server
+sudo systemctl status mcp-server
+
+
+================================================================================
+9. VERIFICAR E TESTAR
+================================================================================
+
+# Verificar status
+sudo systemctl status mcp-server
+
+# Ver logs
+sudo journalctl -u mcp-server -n 50
+
+# Testar servidor
+curl http://localhost:8001/health
+
+# Testar endpoint
+curl -X POST http://localhost:8001/mcp/detect \
+  -H "Content-Type: application/json" \
+  -d '{"text": "adicionar conta teste", "context": {}}'
+
+# Verificar banco
+sudo -u postgres psql -d personal_agent_db -c "\dt"
+
+
+================================================================================
+COMANDOS ÚTEIS
+================================================================================
+
+# Gerenciar serviço
+sudo systemctl start mcp-server
+sudo systemctl stop mcp-server
+sudo systemctl restart mcp-server
+sudo systemctl status mcp-server
+
+# Ver logs
+sudo journalctl -u mcp-server -f
+sudo journalctl -u mcp-server -n 100
+
+# Verificar porta
+sudo netstat -tlnp | grep 8001
+
+# Testar conexão banco
+psql -U personal_agent_user -d personal_agent_db -h localhost
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+# Serviço não inicia
+sudo journalctl -u mcp-server -n 100
+cat /opt/personal_agent/.env
+cd /opt/personal_agent/mcp_server && python3 main.py
+
+# Erro de conexão banco
+sudo systemctl status postgresql
+sudo -u postgres psql -l | grep personal_agent_db
+psql -U personal_agent_user -d personal_agent_db -h localhost
+
+# Porta em uso
+sudo lsof -i :8001
+
+
+================================================================================
+PRÓXIMO PASSO: CONFIGURAR N8N
+================================================================================
+
+Após tudo funcionando, configure o fluxo n8n seguindo:
+workflows/N8N_WORKFLOW_GUIDE.md
+
+URL do servidor MCP no n8n:
+- Mesmo servidor: http://localhost:8001
+- Outro servidor: http://srv1140258.hstgr.cloud:8001 (se porta aberta)
+
+================================================================================
