@@ -1,0 +1,97 @@
+================================================================================
+COMANDOS PARA ATUALIZAR NO SERVIDOR
+================================================================================
+
+Execute estes comandos no servidor srv1140258.hstgr.cloud:
+
+================================================================================
+1. CONECTAR AO SERVIDOR
+================================================================================
+
+ssh root@srv1140258.hstgr.cloud
+
+
+================================================================================
+2. ATUALIZAR CÓDIGO (se houver mudanças no código)
+================================================================================
+
+cd /opt/personal_agent
+git pull origin master
+
+
+================================================================================
+3. ATUALIZAR ARQUIVO .env COM A NOVA SENHA
+================================================================================
+
+cd /opt/personal_agent
+nano .env
+
+# Edite a linha DATABASE_URL_PERSONAL:
+# IMPORTANTE: Use localhost (não o hostname externo)
+# Se a senha tiver caracteres especiais, codifique-os:
+#   @ → %40
+#   # → %23
+#   $ → %24
+
+# Exemplo com senha sem caracteres especiais:
+DATABASE_URL_PERSONAL=postgresql://personal_agent_user:SUA_NOVA_SENHA@localhost:5432/personal_agent_db
+
+# Salve: Ctrl+O, Enter, Ctrl+X
+
+
+================================================================================
+4. TESTAR CONEXÃO
+================================================================================
+
+cd /opt/personal_agent
+source venv/bin/activate
+python3 scripts/test_connection.py
+
+
+================================================================================
+5. REINICIAR SERVIDOR MCP (se necessário)
+================================================================================
+
+sudo systemctl restart mcp-server
+sudo systemctl status mcp-server
+
+
+================================================================================
+6. VERIFICAR SE ESTÁ FUNCIONANDO
+================================================================================
+
+# Ver logs
+sudo journalctl -u mcp-server -f
+
+# Testar endpoint
+curl http://localhost:8001/health
+
+
+================================================================================
+COMANDOS RÁPIDOS (TUDO DE UMA VEZ)
+================================================================================
+
+ssh root@srv1140258.hstgr.cloud
+cd /opt/personal_agent
+git pull origin master
+nano .env  # Atualize a senha aqui
+source venv/bin/activate
+python3 scripts/test_connection.py
+sudo systemctl restart mcp-server
+sudo systemctl status mcp-server
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+# Se der erro de conexão:
+sudo systemctl status postgresql
+cat /opt/personal_agent/.env
+psql -U personal_agent_user -d personal_agent_db -h localhost
+
+# Se o servidor MCP não iniciar:
+sudo journalctl -u mcp-server -n 50
+cd /opt/personal_agent/mcp_server && python3 main.py
+
+================================================================================
