@@ -30,9 +30,8 @@ Substituído por `@n8n/n8n-nodes-langchain.agent` (AI Agent node).
 ```json
 {
   "type": "@n8n/n8n-nodes-langchain.agent",
-  "typeVersion": 1.2,
+  "typeVersion": 3,
   "parameters": {
-    "agent": "openAi",
     "promptType": "define",
     "text": "={{ ... }}",
     "options": {
@@ -41,6 +40,20 @@ Substituído por `@n8n/n8n-nodes-langchain.agent` (AI Agent node).
   }
 }
 ```
+
+**Formato Mínimo (conforme exemplo do n8n):**
+```json
+{
+  "type": "@n8n/n8n-nodes-langchain.agent",
+  "typeVersion": 3,
+  "parameters": {
+    "promptType": "define",
+    "options": {}
+  }
+}
+```
+
+> **Nota:** O formato mínimo acima é usado quando o prompt é definido diretamente na interface do n8n. No JSON exportado, mantemos `text` e `systemMessage` para que funcione ao importar.
 
 ### 2. Assistente IA
 
@@ -98,7 +111,7 @@ Se após importar os nodes ainda aparecerem "soltos":
    - Salve
 
 3. **Verifique a versão:**
-   - `typeVersion` deve ser `1.2` ou superior
+   - `typeVersion` deve ser `3` (versão correta para n8n 1.122.4)
 
 ---
 
