@@ -171,7 +171,7 @@ if [ ! -f ".env" ]; then
     echo ""
     
     # Codificar senha para URL (necessário se contém caracteres especiais como @)
-    DB_PASSWORD_ENCODED=$(urlencode "$DB_PASSWORD")
+    DB_PASSWORD_ENCODED=$(url_encode "$DB_PASSWORD")
     
     # Atualizar .env com a senha codificada
     sed -i "s|SENHA_SEGURA_AQUI|$DB_PASSWORD_ENCODED|g" .env
