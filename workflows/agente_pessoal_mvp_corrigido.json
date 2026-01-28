@@ -64,18 +64,18 @@
             "version": 2,
             "leftValue": "",
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "typeValidation": "loose"
           },
           "combinator": "and",
           "conditions": [
             {
               "id": "check-voice",
               "operator": {
-                "type": "object",
-                "operation": "notEmpty",
+                "type": "boolean",
+                "operation": "true",
                 "singleValue": true
               },
-              "leftValue": "={{ $json.voice }}",
+              "leftValue": "={{ $json.voice !== null && $json.voice !== undefined && typeof $json.voice === 'object' && Object.keys($json.voice).length > 0 }}",
               "rightValue": ""
             }
           ]
